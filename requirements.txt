@@ -1,0 +1,6 @@
+Flask==3.0.3
+tensorflow
+gensim
+pandas
+scikit-learn
+datasets==2.19.1

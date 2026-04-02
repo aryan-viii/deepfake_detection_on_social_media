@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deepfake Tweet Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Deepfake Tweet Detection System</h1>
+        <p>This is my project to detect machine-generated tweets using FastText embeddings, CNN, and LSTM.</p>
+        
+        <div class="form-group">
+            <label for="tweetText">Enter a Tweet to Analyze:</label>
+            <textarea id="tweetText" rows="4" placeholder="Hello world, this is a tweet..."></textarea>
+        </div>
+        
+        <button id="detectBtn" onclick="detectTweet()">Detect</button>
+        
+        <div id="resultBox" class="result" style="display: none;">
+            <h3>Result: <span id="predictionResult"></span></h3>
+            <p>Confidence: <span id="confidenceResult"></span></p>
+        </div>
+    </div>
+
+    <script>
+        function detectTweet() {
+            const text = document.getElementById("tweetText").value;
+            if (!text) {
+                alert("Please enter some text!");
+                return;
+            }
+            
+            const btn = document.getElementById("detectBtn");
+            btn.innerText = "Analyzing...";
+            btn.disabled = true;
+
+            // Reset result box for visual feedback that a new request started
+            document.getElementById("resultBox").style.display = "block";
+            document.getElementById("resultBox").className = "result";
+            document.getElementById("predictionResult").innerText = "Loading...";
+            document.getElementById("confidenceResult").innerText = "Loading...";
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({text: text})
+            })
+            .then(response => response.json())
+            .then(data => {
+                btn.innerText = "Detect";
+                btn.disabled = false;
+                
+                if(data.error) {
+                    alert("Error: " + data.error);
+                } else {
+                    document.getElementById("resultBox").style.display = "block";
+                    document.getElementById("predictionResult").innerText = data.prediction;
+                    document.getElementById("confidenceResult").innerText = data.confidence;
+                    
+                    if (data.prediction.includes("Fake")) {
+                        document.getElementById("resultBox").className = "result fake";
+                    } else {
+                        document.getElementById("resultBox").className = "result real";
+                    }
+                }
+            })
+            .catch(error => {
+                btn.innerText = "Detect";
+                btn.disabled = false;
+                alert("An error occurred: " + error);
+            });
+        }
+    </script>
+</body>
+</html>
